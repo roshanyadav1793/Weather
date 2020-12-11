@@ -3,10 +3,13 @@ const bodyParser=require('body-parser');
 const https=require('https');
 const ejs=require('ejs');
 const mongoose=require('mongoose');
-const session=require('express-session');
-const passport=require('passport');
-const passportLocalMongoose =require('passport-local-mongoose');
-const LocalStrategy = require('passport-local');
+// const session=require('express-session');
+// const passport=require('passport');
+// const passportLocalMongoose =require('passport-local-mongoose');
+// const LocalStrategy = require('passport-local');
+const bcrypt=require('bcrypt');
+const saltRounds=10;
+
 
 const app=express();
 
@@ -15,17 +18,17 @@ app.use(bodyParser.urlencoded({extended : true}));
 app.use(express.static(__dirname + '/public'));
 app.set('view engine','ejs');
 
-app.use(session({
-    secret:"our little secret",
-    resave:false,
-    saveUninitialized:false
-}));
+// app.use(session({
+//     secret:"our little secret",
+//     resave:false,
+//     saveUninitialized:false
+// }));
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 mongoose.connect("mongodb://localhost:27017/weatherDB",{ useNewUrlParser: true ,useUnifiedTopology: true });
-mongoose.set("useCreateIndex",true);
+// mongoose.set("useCreateIndex",true);
 
 app.get("/",(req,res)=>{
     res.render("index",{cssa:'index'});
@@ -79,39 +82,57 @@ const userSchema=new mongoose.Schema({
     }
 });
 
-userSchema.plugin(passportLocalMongoose);
+// userSchema.plugin(passportLocalMongoose);
 
 const User= mongoose.model("User",userSchema);
 
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+// passport.use(new LocalStrategy(User.authenticate()));
+// passport.serializeUser(User.serializeUser());
+// passport.deserializeUser(User.deserializeUser());
 
-app.get("/input", function(req,res){
-    if(req.isAuthenticated()){
-        res.render("input",{cssa:'input'});
-    }else{
-        res.redirect("/input");
-    }
-});
+// app.get("/input", function(req,res){
+//     if(req.isAuthenticated()){
+//         res.render("input",{cssa:'input'});
+//     }else{
+//         res.redirect("/input");
+//     }
+// });
 
 
-app.post("/signup",function(req,res){   
-    User.register({email:req.body.username},req.body.password,function(err,user){
-        if(err){
-            console.log(err);
-            console.log(req.body.username);
-            res.redirect("/signup");
-        }else{
-            passport.authenticate("local")(req,res,function(){
-                res.redirect("/input");
-            });
-        }
-    });
+app.post("/signup",function(req,res){ 
+    
+    bcrypt.hash(req.body.password,saltRounds,function(err,hash){
+        const newUser=new User({
+            email:req.body.username,
+            password: hash
+        });
+        newUser.save(function(err){
+            if(err){
+                console.log(err);
+            }else{
+                res.render("input",{cssa:'input'});
+            }
+        });
+    });   
 });
 
 app.post("/login",(req,res)=>{
-    
+    const username=req.body.username;
+    const password=req.body.password;
+
+    User.findOne({email: username},function(err,foundUser){
+        if(err){
+            console.log(err);
+        }else{
+            if(foundUser){
+                bcrypt.compare(password,foundUser.password,function(err,result){
+                    if(result === true){
+                        res.render("input",{cssa:'input'});
+                    }
+                });
+            }
+        }
+    });    
 });
  
 
