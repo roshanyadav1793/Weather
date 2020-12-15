@@ -3,6 +3,7 @@ const bodyParser=require('body-parser');
 const https=require('https');
 const ejs=require('ejs');
 const mongoose=require('mongoose');
+const request=require('request-promise');
 // const session=require('express-session');
 // const passport=require('passport');
 // const passportLocalMongoose =require('passport-local-mongoose');
@@ -10,13 +11,15 @@ const mongoose=require('mongoose');
 const bcrypt=require('bcrypt');
 const saltRounds=10;
 
-
 const app=express();
 
+var city = {};
+let weatherData = [];
 
 app.use(bodyParser.urlencoded({extended : true}));
 app.use(express.static(__dirname + '/public'));
 app.set('view engine','ejs');
+
 
 // app.use(session({
 //     secret:"our little secret",
@@ -27,7 +30,7 @@ app.set('view engine','ejs');
 // app.use(passport.initialize());
 // app.use(passport.session());
 
-mongoose.connect("mongodb://localhost:27017/weatherDB",{ useNewUrlParser: true ,useUnifiedTopology: true });
+mongoose.connect("mongodb+srv://roshanyadav1793:Roshan@123@cluster0.ghlct.mongodb.net/weatherDB",{ useNewUrlParser: true ,useUnifiedTopology: true });
 // mongoose.set("useCreateIndex",true);
 
 app.get("/",(req,res)=>{
@@ -47,30 +50,52 @@ app.post("/input", function(req,res){
     const query=req.body.cityName;
     const apiKey="34bef40304807cf089a8dd778875a117";
     const unit="metric";
-    const url="https://api.openweathermap.org/data/2.5/weather?q="+query + "&appid="+ apiKey+ "&units="+ unit;
-    
+    const url="https://api.openweathermap.org/data/2.5/weather?q="+query + "&appid="+ apiKey+ "&units="+ unit;    
 
     https.get(url,function(response){
-        console.log(response.statusCode);
-        
+        console.log(response.statusCode);        
 
         response.on("data", function(data){
-            const weatherData=JSON.parse(data);
+            weatherData=JSON.parse(data);
             const temp=weatherData.main.temp;
-            const weatherDescription=weatherData.weather[0].description;
+            const feels_like=weatherData.main.feels_like;
+            const description=weatherData.weather[0].description;
             const icon=weatherData.weather[0].icon;
+            const clouds = weatherData.clouds.all;
             const imageURL="http://openweathermap.org/img/wn/"+ icon+"@2x.png";
-            res.setHeader('Content-Type', 'text/html');
-            res.write("<p>The weather is currently " + weatherDescription+"</p>");
-            res.write("<h1>The temperature in "+ query + " is "+ temp+" degrees celcius.</h1>");
-            res.write("<img src="+ imageURL+">");
-            //res.write('<div class="card" style="width: 18rem;"><img class="card-img-top" src="..." alt="Card image cap"><div class="card-body"><p class="card-text">Some quick example text to build on the card title and make up the bulk of the card content.</p></div></div>');
-            //  res.render("temp",{query: query, weatherDescription: weatherDescription,temperature: temp, imageURL: imageURL});            
+            const cloudsImageURL = "http://openweathermap.org/img/wn/03n@2x.png";
+            // res.setHeader('Content-Type', 'text/html');
+            // res.write("<p>The weather is currently " + weatherDescription+"</p>");
+            // res.write("<h1>The temperature in "+ query + " is "+ temp+" degrees celcius.</h1>");
+            // res.write("<img src="+ imageURL+">");
+            //  res.render("temp",{query: query, weatherDescription: weatherDescription,temperature: temp, imageURL: imageURL});   
+
+            console.log(weatherData);
+            var city = query;
+            res.redirect("/result");
+                     
         }); 
     
     });
 
+    
 });
+
+const content1 = "11Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc";
+
+
+app.get("/result", function(req, res) {
+    res.render('result', {
+      content: content1,
+      description: weatherData.description,
+      city: weatherData.city,
+      temp: weatherData.temp,
+      feelsLike: weatherData.feels_like  
+    });
+  
+  });
+
+
 
 const userSchema=new mongoose.Schema({
     email: {
@@ -128,6 +153,9 @@ app.post("/login",(req,res)=>{
                 bcrypt.compare(password,foundUser.password,function(err,result){
                     if(result === true){
                         res.render("input",{cssa:'input'});
+                    }else{
+                        console.log("incorrect password");                       
+                        res.redirect("/");
                     }
                 });
             }
