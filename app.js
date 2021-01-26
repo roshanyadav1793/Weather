@@ -69,28 +69,26 @@ app.post("/input", function(req,res){
             // res.write("<h1>The temperature in "+ query + " is "+ temp+" degrees celcius.</h1>");
             // res.write("<img src="+ imageURL+">");
             //  res.render("temp",{query: query, weatherDescription: weatherDescription,temperature: temp, imageURL: imageURL});   
-
             console.log(weatherData);
             var city = query;
             res.redirect("/result");
                      
-        }); 
-    
-    });
-
-    
+        });    
+    });    
 });
-
-const content1 = "11Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc";
-
 
 app.get("/result", function(req, res) {
     res.render('result', {
-      content: content1,
-      description: weatherData.description,
-      city: weatherData.city,
-      temp: weatherData.temp,
-      feelsLike: weatherData.feels_like  
+      cssa:'style',  
+      description: weatherData.weather[0].description,
+      city: weatherData.name,
+      temp: weatherData.main.temp,
+      feelsLike: weatherData.main.feels_like,
+      humidity: weatherData.main.humidity,
+      windSpeed:weatherData.wind.speed,
+      imageURL:"http://openweathermap.org/img/wn/"+ weatherData.weather[0].icon+"@2x.png",
+      cloudsImageURL : "http://openweathermap.org/img/wn/03n@2x.png",
+      country:weatherData.sys.country  
     });
   
   });
