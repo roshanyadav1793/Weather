@@ -1,0 +1,35 @@
+<%- include("partials/header") -%>
+
+  <div class="container">
+    <div class="header">
+      <div class="icon-container">
+        <img src="<%= imageURL %> ">
+      </div>
+    </div>
+    <div class="content">
+      <div class="general-information">
+        <div class="status" data-status><%=city %> , <%=country %></div>
+      </div>
+      <div class="detail-section">
+        <div class="detail">
+          <div class="title">Wind</div>
+          <div class="value" data-wind><%= windSpeed %> m/s</div>
+        </div>
+        <div class="detail bordered">
+            <div class="title">Temperature</div>
+          <div class="value" data-temperature><%=temp %> &#8451</div>
+        </div>
+        <div class="detail">
+          <div class="title">Humidity</div>
+          <div class="value" data-precipitation><%= humidity %> %</div>
+        </div>
+      </div>
+      <div class="city-search-container">
+        <p>The weather conditions are <%= description%></p>
+      </div>
+    </div>
+  </div>
+  <a href="/" class="darksky-logo">LogOut</a>
+  <script type="text/javascript" src="/js/script.js"></script>
+</body>
+</html>
